@@ -21,6 +21,8 @@ const App = () => {
     flex: 1,
   };
   const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [refreshingTwo, setRefreshingTwo] = useState<boolean>(false);
+
   const [random, setRandom] = useState<number[]>([
     Math.random(),
     Math.random(),
@@ -143,41 +145,40 @@ const App = () => {
           <Text style={styles.text}>헤더영역</Text>
         </View>
       </View>
-      <FlatList
-        ListHeaderComponent={
-          <View style={styles.body}>
-            <View style={styles.bodyLabel}>
-              <Text style={styles.text}>가로 스크롤 영역 #1</Text>
-            </View>
-            <FlatList
-              data={suffle(data, random[0])}
-              horizontal
-              renderItem={renderItem}
-              ItemSeparatorComponent={() => <View style={styles.separator} />}
-              style={styles.flatListStyle}
-              contentContainerStyle={styles.flatListContainerStyle}
-              keyExtractor={item => item.auctionId.toString()}
-            />
-            <View style={styles.bodyLabel}>
-              <Text style={styles.text}>가로 스크롤 영역 #2</Text>
-            </View>
-            <FlatList
-              data={suffle(data, random[1])}
-              horizontal
-              renderItem={renderItem}
-              ItemSeparatorComponent={() => <View style={styles.separator} />}
-              style={styles.flatListStyle}
-              contentContainerStyle={styles.flatListContainerStyle}
-              keyExtractor={item => item.auctionId.toString()}
-            />
-          </View>
-        }
-        refreshing={refreshing}
-        onRefresh={() => {
-          setRandom([Math.random(), Math.random()]);
-        }}
-        style={styles.flatListWrapperStyle}
-      />
+      <View style={styles.body}>
+        <View style={styles.bodyLabel}>
+          <Text style={styles.text}>가로 스크롤 영역 #1</Text>
+        </View>
+        <FlatList
+          data={suffle(data, random[0])}
+          horizontal
+          renderItem={renderItem}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+          style={styles.flatListStyle}
+          contentContainerStyle={styles.flatListContainerStyle}
+          keyExtractor={item => item.auctionId.toString()}
+          refreshing={refreshing}
+          onRefresh={() => {
+            setRandom([Math.random(), random[1]]);
+          }}
+        />
+        <View style={styles.bodyLabel}>
+          <Text style={styles.text}>가로 스크롤 영역 #2</Text>
+        </View>
+        <FlatList
+          data={suffle(data, random[1])}
+          horizontal
+          renderItem={renderItem}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+          style={styles.flatListStyle}
+          contentContainerStyle={styles.flatListContainerStyle}
+          keyExtractor={item => item.auctionId.toString()}
+          refreshing={refreshingTwo}
+          onRefresh={() => {
+            setRandom([random[0], Math.random()]);
+          }}
+        />
+      </View>
       <View style={styles.section}>
         <Text style={styles.text}>탭바영역</Text>
       </View>
@@ -210,6 +211,7 @@ const styles = StyleSheet.create({
   },
   body: {
     flex: 10,
+    backgroundColor: 'white',
   },
   bodyLabel: {
     height: 60,
@@ -237,9 +239,6 @@ const styles = StyleSheet.create({
   },
   flatListContainerStyle: {
     padding: 15,
-  },
-  flatListWrapperStyle: {
-    backgroundColor: 'white',
   },
 });
 
