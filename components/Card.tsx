@@ -1,4 +1,4 @@
-import React, {type PropsWithChildren} from 'react';
+import React, {type PropsWithChildren, memo} from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 
 const Card: React.FC<
@@ -33,4 +33,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Card;
+export default memo(Card);

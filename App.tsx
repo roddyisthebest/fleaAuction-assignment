@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   SafeAreaView,
   StatusBar,
@@ -8,7 +8,7 @@ import {
   View,
   FlatList,
 } from 'react-native';
-import EventSource, {CustomEvent, EventSourceEvent} from 'react-native-sse';
+import EventSource from 'react-native-sse';
 
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 import Card from './components/Card';
@@ -20,6 +20,11 @@ const App = () => {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
     flex: 1,
   };
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [random, setRandom] = useState<number[]>([
+    Math.random(),
+    Math.random(),
+  ]);
   const [data, setData] = useState<{viewCount: number; auctionId: number}[]>([
     {auctionId: 2127, viewCount: 120},
     {auctionId: 2128, viewCount: 143},
@@ -58,6 +63,7 @@ const App = () => {
     {auctionId: 2149, viewCount: 44},
     {auctionId: 2152, viewCount: 80},
   ]);
+
   const [sseEvent, setSseEvent] = useState<{
     data: string;
     lastEventId: number;
@@ -74,6 +80,20 @@ const App = () => {
   }: {
     item: {viewCount: number; auctionId: number};
   }) => <Card viewCount={item.viewCount} auctionId={item.auctionId} />;
+
+  const suffle = (
+    dataProps: {viewCount: number; auctionId: number}[],
+    rand: number,
+  ) => {
+    const copyData = [...dataProps];
+    for (let index = dataProps.length - 1; index > 0; index--) {
+      const randomPosition = Math.floor(rand * (index + 1));
+      const temporary = copyData[index];
+      copyData[index] = copyData[randomPosition];
+      copyData[randomPosition] = temporary;
+    }
+    return copyData;
+  };
 
   type MyCustomEvents = 'sse.auction_viewed' | 'open';
 
@@ -115,43 +135,52 @@ const App = () => {
       }),
     );
   }, [sseEvent]);
+
   return (
     <SafeAreaView style={backgroundStyle}>
       <View style={styles.container}>
         <View style={styles.section}>
           <Text style={styles.text}>헤더영역</Text>
         </View>
-        <View style={styles.body}>
-          <View style={styles.bodyLabel}>
-            <Text style={styles.text}>가로 스크롤 영역 #1</Text>
-          </View>
-          <FlatList
-            data={data}
-            horizontal
-            renderItem={renderItem}
-            ItemSeparatorComponent={() => <View style={styles.separator} />}
-            style={styles.flatListStyle}
-            contentContainerStyle={styles.flatListContainerStyle}
-            keyExtractor={item => item.auctionId.toString()}
-          />
-          <View style={styles.bodyLabel}>
-            <Text style={styles.text}>가로 스크롤 영역 #2</Text>
-          </View>
-          <FlatList
-            data={data}
-            horizontal
-            renderItem={renderItem}
-            ItemSeparatorComponent={() => <View style={styles.separator} />}
-            style={styles.flatListStyle}
-            contentContainerStyle={styles.flatListContainerStyle}
-            keyExtractor={item => item.auctionId.toString()}
-          />
-        </View>
-        <View style={styles.section}>
-          <Text style={styles.text}>탭바영역</Text>
-        </View>
       </View>
-
+      <FlatList
+        ListHeaderComponent={
+          <View style={styles.body}>
+            <View style={styles.bodyLabel}>
+              <Text style={styles.text}>가로 스크롤 영역 #1</Text>
+            </View>
+            <FlatList
+              data={suffle(data, random[0])}
+              horizontal
+              renderItem={renderItem}
+              ItemSeparatorComponent={() => <View style={styles.separator} />}
+              style={styles.flatListStyle}
+              contentContainerStyle={styles.flatListContainerStyle}
+              keyExtractor={item => item.auctionId.toString()}
+            />
+            <View style={styles.bodyLabel}>
+              <Text style={styles.text}>가로 스크롤 영역 #2</Text>
+            </View>
+            <FlatList
+              data={suffle(data, random[1])}
+              horizontal
+              renderItem={renderItem}
+              ItemSeparatorComponent={() => <View style={styles.separator} />}
+              style={styles.flatListStyle}
+              contentContainerStyle={styles.flatListContainerStyle}
+              keyExtractor={item => item.auctionId.toString()}
+            />
+          </View>
+        }
+        refreshing={refreshing}
+        onRefresh={() => {
+          setRandom([Math.random(), Math.random()]);
+        }}
+        style={styles.flatListWrapperStyle}
+      />
+      <View style={styles.section}>
+        <Text style={styles.text}>탭바영역</Text>
+      </View>
       <StatusBar
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
         backgroundColor={backgroundStyle.backgroundColor}
@@ -172,6 +201,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'white',
   },
   text: {
     fontSize: 20,
@@ -207,6 +237,9 @@ const styles = StyleSheet.create({
   },
   flatListContainerStyle: {
     padding: 15,
+  },
+  flatListWrapperStyle: {
+    backgroundColor: 'white',
   },
 });
 
